@@ -9,15 +9,16 @@ To install the package, execute this command in the root of your project :
 meteor add jalik:roles
 ```
 
-To remove the package :
+If later you want to remove the package :
 ```
 meteor remove jalik:roles
 ```
 
-### How it works
+### Creating roles
 
-The package uses a Mongo.Collection accessible via **Meteor.roles**.
-First thing, you need to create the roles you need on server side.
+First thing, you need to create the roles you need on the server.
+For that you have a Mongo.Collection accessible via **Meteor.roles**.
+By default, all operations (insert, update, remove) on this collection are not allowed on the client.
 
 ```js
 if (Meteor.isServer) {
@@ -34,34 +35,36 @@ if (Meteor.isServer) {
 }
 ```
 
-### Environment
+### Assigning roles
 
-All related methods are defined in the **Roles** object.
+To assign a role, use the **Roles.setUserRole()** method.
+
+```js
+if (Meteor.isServer) {
+    // Set user's role
+    Roles.setUserRole(adminId, roleId);
+    // Remove user's role
+    Roles.setUserRole(adminId, null);
+}
+```
+
+### Getting the user's role
+
 When a user logs in, his role is automatically subscribed on the client.
+After that you can use the following methods to get the current role info.
 
 ```js
 if (Meteor.isClient) {
     // Get the current role id
-    var roleId = Roles.roleId();
+    var roleId = Meteor.roleId();
     // Get the current role object
-    var role = Roles.role();
-}
-```
-
-### Assigning roles
-
-To assign a role to a user, there is the **Roles.setUserRole()** method.
-By default, all operations are not allowed on the client, so you must use it on the server.
-
-```js
-if (Meteor.isServer) {
-    Roles.setUserRole(adminId, roleId);
+    var role = Meteor.role();
 }
 ```
 
 ### Checking permissions
 
-When roles are created and assigned, you can check if a user has one or more permissions using the **Roles.userCan()** method.
+You can check if a user has one or more permissions using the **Roles.userCan()** method.
 
 ```js
 if (Meteor.isClient) {
@@ -83,8 +86,6 @@ if (Meteor.isServer) {
 ```
 
 ### Helpers
-
-If needed, you can use the available template helpers.
 
 ```html
 {{#if userCan 'comment'}}

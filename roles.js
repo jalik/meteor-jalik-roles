@@ -35,7 +35,7 @@ Roles = {
      */
     setUserRole: function (userId, roleId) {
         // Check if role exists
-        if (Meteor.roles.find({_id: roleId}).count() < 1) {
+        if (roleId && Meteor.roles.find({_id: roleId}).count() < 1) {
             throw new Meteor.Error('role-not-found');
         }
         return Meteor.users.update(userId, {
