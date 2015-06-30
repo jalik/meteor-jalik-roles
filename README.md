@@ -77,10 +77,10 @@ if (Meteor.isClient) {
 }
 if (Meteor.isServer) {
     if (Roles.userCan('comment', userId)) {
-        displayCommentForm();
+        // ...
     }
     if (Roles.userCan(['edit','delete'], userId)) {
-        displayActionButtons();
+        // ...
     }
 }
 ```
