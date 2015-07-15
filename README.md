@@ -37,7 +37,7 @@ if (Meteor.isServer) {
 
 ### Assigning roles
 
-To assign a role, use the **Roles.setUserRole()** method.
+To assign a role, use the **Roles.setUserRole()** method on the server.
 
 ```js
 if (Meteor.isServer) {
@@ -64,7 +64,7 @@ if (Meteor.isClient) {
 
 ### Checking permissions
 
-You can check if a user has one or more permissions using the **Roles.userCan()** method.
+You can check if a user has one or more permissions using the **Roles.userCan()** method, it will returns a boolean.
 
 ```js
 if (Meteor.isClient) {
@@ -77,11 +77,22 @@ if (Meteor.isClient) {
 }
 if (Meteor.isServer) {
     if (Roles.userCan('comment', userId)) {
-        // ...
+        console.log('user can comment');
     }
     if (Roles.userCan(['edit','delete'], userId)) {
-        // ...
+        console.log('user can edit and delete');
     }
+}
+```
+
+You can throw an error if the role or the user does not have the permissions.
+
+```js
+if (Meteor.isServer) {
+    Roles.checkRolePerms('comment', roleId));
+    Roles.checkUserPerms('edit', userId));
+    // If the user cannot edit, the code below won't be executed
+    console.log('user can edit');
 }
 ```
 

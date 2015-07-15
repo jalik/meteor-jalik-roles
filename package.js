@@ -1,6 +1,6 @@
 Package.describe({
     name: 'jalik:roles',
-    version: '0.1.0',
+    version: '0.1.1',
     author: 'karl.stein.pro@gmail.com',
     summary: 'Control user actions with roles',
     homepage: 'https://github.com/jalik/jalik-roles',
