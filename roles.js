@@ -106,9 +106,11 @@ if (Meteor.isClient) {
      * @return {any}
      */
     Meteor.role = function () {
-        if (Meteor.userId()) {
-            var user = Meteor.user();
-            return user ? Meteor.roles.findOne(user.roleId) : null;
+        var user = Meteor.user();
+
+        if (Meteor.userId() && user) {
+            var role = Meteor.roles.findOne(user.roleId);
+            return role !== undefined ? role : null;
         }
         return null;
     };
@@ -119,14 +121,16 @@ if (Meteor.isClient) {
      */
     Meteor.roleId = function () {
         var role = Meteor.role();
-        return role && role._id;
+        return role ? role._id : null;
     };
 
     /**
      * Subscribe to role when user log in
      */
-    Accounts.onLogin(function () {
-        Meteor.subscribe('userRole');
+    Tracker.autorun(function () {
+        if (Meteor.userId()) {
+            Meteor.subscribe('userRole');
+        }
     });
 
     /**
