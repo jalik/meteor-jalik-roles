@@ -125,10 +125,19 @@ if (Meteor.isClient) {
     };
 
     /**
-     * Subscribe to role when user log in
+     * Subscribes to role when user logs in
      */
     Tracker.autorun(function () {
         if (Meteor.userId()) {
+            Meteor.subscribe('userRole');
+        }
+    });
+
+    /**
+     * Subscribes to role when user is modified (potentially his role)
+     */
+    Tracker.autorun(function () {
+        if (Meteor.user()) {
             Meteor.subscribe('userRole');
         }
     });

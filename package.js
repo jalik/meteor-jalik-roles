@@ -1,6 +1,6 @@
 Package.describe({
     name: 'jalik:roles',
-    version: '0.1.2',
+    version: '0.1.3',
     author: 'karl.stein.pro@gmail.com',
     summary: 'Easy but strong way to manage users permissions in your Meteor apps.',
     homepage: 'https://github.com/jalik/jalik-roles',
