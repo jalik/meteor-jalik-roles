@@ -22,6 +22,7 @@ Roles = {
             throw new Meteor.Error('forbidden');
         }
     },
+
     /**
      * Throws an error if the user does not have the permissions
      * @param perms
@@ -32,6 +33,18 @@ Roles = {
             throw new Meteor.Error('forbidden');
         }
     },
+
+    /**
+     * Returns the user's role
+     * @param userId
+     */
+    getUserRole: function (userId) {
+        var user = Meteor.users.find(userId, {
+            fields: {roleId: 1}
+        });
+        return user ? user.roleId : null;
+    },
+
     /**
      * Checks if the role has a permission
      * @param perms
