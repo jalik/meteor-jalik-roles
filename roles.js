@@ -1,7 +1,26 @@
 /*
- * Copyright (c) 2014.
- * The code of this file is the property of Karl STEIN.
- * You have no right to modify, share or sell this code.
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Karl STEIN
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
  */
 
 /**
@@ -121,7 +140,7 @@ if (Meteor.isClient) {
     Meteor.role = function () {
         var user = Meteor.user();
 
-        if (Meteor.userId() && user) {
+        if (user) {
             var role = Meteor.roles.findOne(user.roleId);
             return role !== undefined ? role : null;
         }
@@ -138,19 +157,10 @@ if (Meteor.isClient) {
     };
 
     /**
-     * Subscribes to role when user logs in
-     */
-    Tracker.autorun(function () {
-        if (Meteor.userId()) {
-            Meteor.subscribe('userRole');
-        }
-    });
-
-    /**
      * Subscribes to role when user is modified (potentially his role)
      */
     Tracker.autorun(function () {
-        if (Meteor.user()) {
+        if (Meteor.user() && Meteor.user()._id) {
             Meteor.subscribe('userRole');
         }
     });
@@ -183,9 +193,9 @@ if (Meteor.isServer) {
      * Publish the role of the current user
      */
     Meteor.publish('userRole', function () {
-        check(this.userId, String);
-
-        // Get user
+        if (!this.userId) {
+            return this.ready();
+        }
         var user = Meteor.users.findOne(this.userId, {
             fields: {roleId: 1}
         });
@@ -198,6 +208,5 @@ if (Meteor.isServer) {
                 })
             ];
         }
-        return this.ready();
     });
 }
