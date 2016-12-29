@@ -23,32 +23,31 @@
  *
  */
 
-Package.describe({
-    name: 'jalik:roles',
-    version: '0.2.0',
-    author: 'karl.stein.pro@gmail.com',
-    summary: 'Simple and efficient way to manage users permissions using roles',
-    homepage: 'https://github.com/jalik/jalik-roles',
-    git: 'https://github.com/jalik/jalik-roles.git',
-    documentation: 'README.md',
-    license: 'MIT'
-});
+import {Meteor} from 'meteor/meteor';
+import {Tracker} from 'meteor/tracker';
+import roles from './roles-collection';
 
-Package.onUse(function (api) {
-    api.versionsFrom('1.3.5.1');
-    api.use('check');
-    api.use('ecmascript');
-    api.use('mongo');
-    api.use('tracker', 'client');
-    api.use('templating', 'client');
-    api.use('underscore');
-    api.mainModule('roles.js');
-});
 
-Package.onTest(function (api) {
-    api.use('ecmascript');
-    api.use('tinytest');
-    api.use('practicalmeteor:mocha');
-    api.use('jalik:roles');
-    api.mainModule('roles-tests.js');
+/**
+ * Returns the role of the current user
+ * @return {any}
+ */
+Meteor.role = function () {
+    let user = Meteor.user();
+    return user ? roles.findOne({_id: user.roleId}) || null : null;
+};
+
+/**
+ * Returns the role ID of the current user
+ * @return {any}
+ */
+Meteor.roleId = function () {
+    return (Meteor.role() || {})._id;
+};
+
+// Subscribes to role when user is modified (potentially his role)
+Tracker.autorun(function () {
+    if ((Meteor.user() || {})._id) {
+        Meteor.subscribe('userRole');
+    }
 });

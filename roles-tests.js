@@ -23,6 +23,9 @@
  *
  */
 
+import {Meteor} from 'meteor/meteor';
+import {Roles} from 'meteor/jalik:roles';
+
 var roleId;
 
 if (Meteor.isServer) {
@@ -37,7 +40,6 @@ if (Meteor.isServer) {
         test.equal(Roles.roleCan('test', roleId), true);
         Meteor.roles.remove(roleId);
     });
-
 }
 
 if (Meteor.isClient) {

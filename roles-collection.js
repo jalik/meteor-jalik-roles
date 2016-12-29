@@ -23,32 +23,12 @@
  *
  */
 
-Package.describe({
-    name: 'jalik:roles',
-    version: '0.2.0',
-    author: 'karl.stein.pro@gmail.com',
-    summary: 'Simple and efficient way to manage users permissions using roles',
-    homepage: 'https://github.com/jalik/jalik-roles',
-    git: 'https://github.com/jalik/jalik-roles.git',
-    documentation: 'README.md',
-    license: 'MIT'
-});
+import {Mongo} from 'meteor/mongo';
 
-Package.onUse(function (api) {
-    api.versionsFrom('1.3.5.1');
-    api.use('check');
-    api.use('ecmascript');
-    api.use('mongo');
-    api.use('tracker', 'client');
-    api.use('templating', 'client');
-    api.use('underscore');
-    api.mainModule('roles.js');
-});
 
-Package.onTest(function (api) {
-    api.use('ecmascript');
-    api.use('tinytest');
-    api.use('practicalmeteor:mocha');
-    api.use('jalik:roles');
-    api.mainModule('roles-tests.js');
-});
+/**
+ * The roles collection
+ * @type {Mongo.Collection}
+ */
+export const Roles = new Mongo.Collection('jalik-roles');
+export default Roles;

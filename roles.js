@@ -23,33 +23,40 @@
  *
  */
 
-/**
- * The Roles collection
- * @type {Mongo.Collection}
- */
-Meteor.roles = new Mongo.Collection('jalik-roles');
+import {Meteor} from 'meteor/meteor';
+import roles from './roles-collection';
 
+export const Roles = {
 
-Roles = {
+    /**
+     * Adds a "userCan" template helper
+     */
+    addBlazeHelpers() {
+        // Checks if the current user has the permission
+        Template.registerHelper('userCan', function (perms) {
+            return this.userCan(perms);
+        });
+    },
+
     /**
      * Throws an error if the role does not have the permissions
-     * @param perms
+     * @param action
      * @param roleId
      */
-    checkRolePerms: function (perms, roleId) {
-        if (!this.roleCan(perms, roleId)) {
-            throw new Meteor.Error('forbidden');
+    checkRolePerms(action, roleId) {
+        if (!this.roleCan(action, roleId)) {
+            throw new Meteor.Error('forbidden', "Action is forbidden");
         }
     },
 
     /**
      * Throws an error if the user does not have the permissions
-     * @param perms
+     * @param action
      * @param userId
      */
-    checkUserPerms: function (perms, userId) {
-        if (!this.userCan(perms, userId)) {
-            throw new Meteor.Error('forbidden');
+    checkUserPerms(action, userId) {
+        if (!this.userCan(action, userId)) {
+            throw new Meteor.Error('forbidden', "Action is forbidden");
         }
     },
 
@@ -57,156 +64,111 @@ Roles = {
      * Returns the user's role
      * @param userId
      */
-    getUserRole: function (userId) {
-        var user = Meteor.users.find(userId, {
-            fields: {roleId: 1}
-        });
+    getUserRole(userId) {
+        let user = Meteor.users.findOne({_id: userId}, {fields: {roleId: 1}});
+        return user ? roles.findOne({_id: user.roleId}) : null;
+    },
+
+    /**
+     * Returns the user's role ID
+     * @param userId
+     */
+    getUserRoleId(userId) {
+        let user = Meteor.users.findOne({_id: userId}, {fields: {roleId: 1}});
         return user ? user.roleId : null;
     },
 
     /**
      * Checks if the role has a permission
-     * @param perms
+     * @param action
      * @param roleId
      * @return {boolean}
      */
-    roleCan: function (perms, roleId) {
-        if (typeof perms === 'string') {
-            return Meteor.roles.find({_id: roleId, permissions: perms}).count() > 0;
-
-        } else if (perms instanceof Array) {
-            return Meteor.roles.find({_id: roleId, permissions: {$all: perms}}).count() > 0;
+    roleCan(action, roleId) {
+        if (typeof action === 'string') {
+            return roles.find({_id: roleId, permissions: action}).count() > 0;
+        }
+        else if (action instanceof Array) {
+            return roles.find({_id: roleId, permissions: {$all: action}}).count() > 0;
         }
         return false;
     },
 
     /**
-     * Sets the user's role
+     * Checks if the role exists
+     * @param roleId
+     * @returns {boolean}
+     */
+    roleExists(roleId){
+        return roles.find({_id: roleId}).count() === 1;
+    },
+
+    /**
+     * Sets the user role
      * @param userId
      * @param roleId
      */
-    setUserRole: function (userId, roleId) {
+    setUserRole(userId, roleId) {
         // Check if role exists
-        if (roleId && Meteor.roles.find({_id: roleId}).count() < 1) {
-            throw new Meteor.Error('role-not-found', "The role does not exist");
+        if (!roleId || !this.roleExists(roleId)) {
+            throw new Meteor.Error('role-not-found', "Role does not exist");
         }
-        return Meteor.users.update(userId, {
-            $set: {roleId: roleId}
-        });
+        return Meteor.users.update({_id: userId}, {$set: {roleId: roleId}});
     },
 
     /**
      * Checks if the user has the permission
-     * @param perms
+     * @param action
      * @param userId
      * @return {boolean}
      */
-    userCan: function (perms, userId) {
+    userCan(action, userId) {
+        let roleId;
+
         // Check if actions is a string or array
-        if (typeof perms === 'string') {
-            perms = [perms];
-
-        } else if (!(perms instanceof Array)) {
-            throw new Meteor.Error('invalid-permissions', "Permissions must be an Array of strings");
+        if (typeof action === 'string') {
+            action = [action];
         }
-
+        else if (!(action instanceof Array)) {
+            throw new TypeError("Permissions must be an Array of String or a String");
+        }
         // Nothing to verify
-        if (perms.length === 0) {
+        if (action.length === 0) {
             return true;
         }
-
-        var roleId;
-
-        // Get role id
+        // Get user role
         if (Meteor.isClient) {
-            roleId = Meteor.roleId();
-
-        } else if (Meteor.isServer) {
-            if (typeof userId !== 'string' || userId.length < 1) {
-                return false;
+            if (typeof userId === 'string') {
+                roleId = this.getUserRoleId(userId);
+            } else {
+                roleId = Meteor.roleId();
             }
-            var user = Meteor.users.findOne(userId);
-            roleId = user && user.roleId;
         }
-        return this.roleCan(perms, roleId);
+        else if (Meteor.isServer) {
+            roleId = this.getUserRoleId(userId);
+        }
+        return this.roleCan(action, roleId);
     }
 };
 
-if (Meteor.isClient) {
-    /**
-     * Returns the role of the current user
-     * @return {any}
-     */
-    Meteor.role = function () {
-        var user = Meteor.user();
+export default Roles;
 
-        if (user) {
-            var role = Meteor.roles.findOne(user.roleId);
-            return role !== undefined ? role : null;
-        }
-        return null;
-    };
-
-    /**
-     * Returns the role Id of the current user
-     * @return {any}
-     */
-    Meteor.roleId = function () {
-        var role = Meteor.role();
-        return role ? role._id : null;
-    };
-
-    /**
-     * Subscribes to role when user is modified (potentially his role)
-     */
-    Tracker.autorun(function () {
-        if (Meteor.user() && Meteor.user()._id) {
-            Meteor.subscribe('userRole');
-        }
-    });
-
-    /**
-     * Checks if the current user has the permission
-     */
-    Template.registerHelper('userCan', function (perms) {
-        return Roles.userCan(perms);
-    });
-}
+// Expose role collection in Meteor's global namespace
+Meteor.roles = roles;
 
 if (Meteor.isServer) {
-    /**
-     * Publish the role
-     */
-    Meteor.publish('role', function (roleId) {
-        check(roleId, String);
-        return Meteor.roles.find({_id: roleId});
-    });
+    require('./roles-server');
 
-    /**
-     * Publish the roles
-     */
-    Meteor.publish('roles', function () {
-        return Meteor.roles.find();
-    });
+    // Expose the module globally
+    if (typeof global !== 'undefined') {
+        global.Roles = Roles;
+    }
+}
+else if (Meteor.isClient) {
+    require('./roles-client');
 
-    /**
-     * Publish the role of the current user
-     */
-    Meteor.publish('userRole', function () {
-        if (!this.userId) {
-            return this.ready();
-        }
-        var user = Meteor.users.findOne(this.userId, {
-            fields: {roleId: 1}
-        });
-
-        if (user) {
-            return [
-                Meteor.roles.find({_id: user.roleId}),
-                Meteor.users.find({_id: this.userId}, {
-                    fields: {roleId: 1}
-                })
-            ];
-        }
-    });
+    // Expose the module globally
+    if (typeof window !== 'undefined') {
+        window.Roles = Roles;
+    }
 }

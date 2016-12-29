@@ -23,32 +23,39 @@
  *
  */
 
-Package.describe({
-    name: 'jalik:roles',
-    version: '0.2.0',
-    author: 'karl.stein.pro@gmail.com',
-    summary: 'Simple and efficient way to manage users permissions using roles',
-    homepage: 'https://github.com/jalik/jalik-roles',
-    git: 'https://github.com/jalik/jalik-roles.git',
-    documentation: 'README.md',
-    license: 'MIT'
-});
+import {check} from 'meteor/check';
+import {Meteor} from 'meteor/meteor';
+import {Roles} from './roles';
+import roles from './roles-collection';
 
-Package.onUse(function (api) {
-    api.versionsFrom('1.3.5.1');
-    api.use('check');
-    api.use('ecmascript');
-    api.use('mongo');
-    api.use('tracker', 'client');
-    api.use('templating', 'client');
-    api.use('underscore');
-    api.mainModule('roles.js');
-});
 
-Package.onTest(function (api) {
-    api.use('ecmascript');
-    api.use('tinytest');
-    api.use('practicalmeteor:mocha');
-    api.use('jalik:roles');
-    api.mainModule('roles-tests.js');
-});
+/**
+ * Exposes default role publications
+ */
+Roles.publish = function () {
+    // Publish a single role
+    Meteor.publish('role', function (roleId) {
+        check(roleId, String);
+        return roles.find({_id: roleId});
+    });
+    // Publish a list of roles
+    Meteor.publish('roles', function (filters, options) {
+        return roles.find(filters, options);
+    });
+    // Publish the role of the current user
+    Meteor.publish('userRole', function () {
+        if (!this.userId) {
+            return this.ready();
+        }
+        let roleId = Roles.getUserRoleId(this.userId);
+
+        if (roleId) {
+            return [
+                roles.find({_id: roleId}),
+                Meteor.users.find({_id: this.userId}, {fields: {roleId: 1}})
+            ];
+        } else {
+            return this.ready();
+        }
+    });
+};
