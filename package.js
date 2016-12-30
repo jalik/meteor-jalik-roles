@@ -25,9 +25,9 @@
 
 Package.describe({
     name: 'jalik:roles',
-    version: '0.2.1',
+    version: '0.2.2',
     author: 'karl.stein.pro@gmail.com',
-    summary: 'Simple and efficient way to manage users permissions using roles',
+    summary: 'Simple and flexible permissions system using roles',
     homepage: 'https://github.com/jalik/jalik-roles',
     git: 'https://github.com/jalik/jalik-roles.git',
     documentation: 'README.md',
@@ -40,7 +40,6 @@ Package.onUse(function (api) {
     api.use('ecmascript@0.4.3');
     api.use('mongo@1.1.7');
     api.use('tracker@1.0.13', 'client');
-    api.use('templating@1.1.9', 'client');
     api.use('underscore@1.0.8');
     api.mainModule('roles.js');
 });

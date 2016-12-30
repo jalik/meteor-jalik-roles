@@ -260,6 +260,9 @@ After what the following helper will be available in your templates.
 
 ## Changelog
 
+### v0.2.2
+- Removes `templating` dependency to improve compatibility with non-blaze applications
+
 ### v0.2.1
 - Fixes `this` scope in `Roles.addBlazeHelpers()`
 
@@ -278,7 +281,6 @@ After what the following helper will be available in your templates.
 - Adds `Roles.setRolePerms(permissions, roleId)` to replace permissions of a role
 - Adds unit tests to eliminate bugs
 - Removes automatic declaration of the `userCan` template helper
-- Removes `templating` dependency to improve compatibility with non-blaze applications
 - Modifies `Roles.getUserRole(userId)` to return the role object instead of the role ID
 
 ## License
