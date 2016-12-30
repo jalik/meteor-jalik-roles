@@ -26,11 +26,24 @@
 import {Meteor} from 'meteor/meteor';
 import {Tracker} from 'meteor/tracker';
 import roles from './roles-collection';
+import Roles from './roles';
 
 
 /**
+ * Subscribes to role when user is modified (potentially his role)
+ */
+Roles.autoLoadUserRole = function () {
+    Tracker.autorun(function () {
+        let userId = (Meteor.user() || {})._id;
+        if (userId) {
+            Meteor.subscribe('userRole', userId);
+        }
+    });
+};
+
+/**
  * Returns the role of the current user
- * @return {any}
+ * @return {*}
  */
 Meteor.role = function () {
     let user = Meteor.user();
@@ -39,15 +52,8 @@ Meteor.role = function () {
 
 /**
  * Returns the role ID of the current user
- * @return {any}
+ * @return {*}
  */
 Meteor.roleId = function () {
     return (Meteor.role() || {})._id;
 };
-
-// Subscribes to role when user is modified (potentially his role)
-Tracker.autorun(function () {
-    if ((Meteor.user() || {})._id) {
-        Meteor.subscribe('userRole');
-    }
-});

@@ -30,18 +30,28 @@ import roles from './roles-collection';
 
 
 /**
- * Exposes default role publications
+ * Creates the 'role' publication
  */
-Roles.publish = function () {
-    // Publish a single role
+Roles.publishRole = function () {
     Meteor.publish('role', function (roleId) {
         check(roleId, String);
         return roles.find({_id: roleId});
     });
-    // Publish a list of roles
+};
+
+/**
+ * Creates the 'roles' publication
+ */
+Roles.publishRoles = function () {
     Meteor.publish('roles', function (filters, options) {
         return roles.find(filters, options);
     });
+};
+
+/**
+ * Creates the 'userRole' publication
+ */
+Roles.publishUserRole = function () {
     // Publish the role of the current user
     Meteor.publish('userRole', function () {
         if (!this.userId) {

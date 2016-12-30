@@ -36,18 +36,19 @@ Package.describe({
 
 Package.onUse(function (api) {
     api.versionsFrom('1.3.5.1');
-    api.use('check');
-    api.use('ecmascript');
-    api.use('mongo');
-    api.use('tracker', 'client');
-    api.use('templating', 'client');
-    api.use('underscore');
+    api.use('check@1.2.1');
+    api.use('ecmascript@0.4.3');
+    api.use('mongo@1.1.7');
+    api.use('tracker@1.0.13', 'client');
+    api.use('templating@1.1.9', 'client');
+    api.use('underscore@1.0.8');
     api.mainModule('roles.js');
 });
 
 Package.onTest(function (api) {
-    api.use('ecmascript');
-    api.use('tinytest');
+    // api.use('accounts-base@1.2.7');
+    // api.use('accounts-password@1.1.8');
+    api.use('ecmascript@0.4.3');
     api.use('practicalmeteor:mocha');
     api.use('jalik:roles');
     api.mainModule('roles-tests.js');

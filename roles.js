@@ -26,10 +26,10 @@
 import {Meteor} from 'meteor/meteor';
 import roles from './roles-collection';
 
-export const Roles = {
 
+export const Roles = {
     /**
-     * Adds a "userCan" template helper
+     * Adds a "userCan" helper for Blaze
      */
     addBlazeHelpers() {
         // Checks if the current user has the permission
@@ -39,29 +39,54 @@ export const Roles = {
     },
 
     /**
+     * Adds one or more permissions to a role
+     * @param permission
+     * @param roleId
+     * @returns {*}
+     */
+    addRolePerms(permission, roleId) {
+        if (typeof permission === 'string') {
+            permission = [permission];
+        }
+        else if (!(permission instanceof Array)) {
+            throw new TypeError("action must be a string or an array of strings");
+        }
+        return roles.update({_id: roleId}, {$addToSet: {permissions: {$each: permission}}});
+    },
+
+    /**
      * Throws an error if the role does not have the permissions
-     * @param action
+     * @param permission
      * @param roleId
      */
-    checkRolePerms(action, roleId) {
-        if (!this.roleCan(action, roleId)) {
+    checkRolePerms(permission, roleId) {
+        if (!this.roleCan(permission, roleId)) {
             throw new Meteor.Error('forbidden', "Action is forbidden");
         }
     },
 
     /**
      * Throws an error if the user does not have the permissions
-     * @param action
+     * @param permission
      * @param userId
      */
-    checkUserPerms(action, userId) {
-        if (!this.userCan(action, userId)) {
+    checkUserPerms(permission, userId) {
+        if (!this.userCan(permission, userId)) {
             throw new Meteor.Error('forbidden', "Action is forbidden");
         }
     },
 
     /**
-     * Returns the user's role
+     * Returns the role's permissions
+     * @param roleId
+     * @returns {Array}
+     */
+    getRolePerms(roleId) {
+        return (roles.findOne({_id: roleId}, {fields: {permissions: 1}}) || {permissions: []}).permissions;
+    },
+
+    /**
+     * Returns the role of the user
      * @param userId
      */
     getUserRole(userId) {
@@ -70,7 +95,7 @@ export const Roles = {
     },
 
     /**
-     * Returns the user's role ID
+     * Returns the ID of the user role
      * @param userId
      */
     getUserRoleId(userId) {
@@ -79,17 +104,33 @@ export const Roles = {
     },
 
     /**
-     * Checks if the role has a permission
-     * @param action
+     * Removes one or more permissions from a role
+     * @param permission
+     * @param roleId
+     * @returns {*}
+     */
+    removeRolePerms(permission, roleId) {
+        if (typeof permission === 'string') {
+            permission = [permission];
+        }
+        else if (!(permission instanceof Array)) {
+            throw new TypeError("action must be a string or an array of strings");
+        }
+        return roles.update({_id: roleId}, {$pull: {permissions: {$in: permission}}});
+    },
+
+    /**
+     * Checks if the role has one or more permissions
+     * @param permission
      * @param roleId
      * @return {boolean}
      */
-    roleCan(action, roleId) {
-        if (typeof action === 'string') {
-            return roles.find({_id: roleId, permissions: action}).count() > 0;
+    roleCan(permission, roleId) {
+        if (typeof permission === 'string') {
+            return roles.find({_id: roleId, permissions: permission}).count() > 0;
         }
-        else if (action instanceof Array) {
-            return roles.find({_id: roleId, permissions: {$all: action}}).count() > 0;
+        else if (permission instanceof Array) {
+            return roles.find({_id: roleId, permissions: {$all: permission}}).count() > 0;
         }
         return false;
     },
@@ -99,8 +140,21 @@ export const Roles = {
      * @param roleId
      * @returns {boolean}
      */
-    roleExists(roleId){
+    roleExists(roleId) {
         return roles.find({_id: roleId}).count() === 1;
+    },
+
+    /**
+     * Sets the permissions of a role
+     * @param permissions
+     * @param roleId
+     * @returns {*}
+     */
+    setRolePerms(permissions, roleId) {
+        if (!(permissions instanceof Array)) {
+            throw new TypeError("permissions must be an array of strings");
+        }
+        return roles.update({_id: roleId}, {$set: {permissions: permissions}});
     },
 
     /**
@@ -109,31 +163,33 @@ export const Roles = {
      * @param roleId
      */
     setUserRole(userId, roleId) {
+        if (typeof roleId !== 'string') {
+            roleId = null;
+        }
         // Check if role exists
-        if (!roleId || !this.roleExists(roleId)) {
+        if (roleId && !this.roleExists(roleId)) {
             throw new Meteor.Error('role-not-found', "Role does not exist");
         }
         return Meteor.users.update({_id: userId}, {$set: {roleId: roleId}});
     },
 
     /**
-     * Checks if the user has the permission
-     * @param action
+     * Checks if the user has one or more permissions
+     * @param permission
      * @param userId
      * @return {boolean}
      */
-    userCan(action, userId) {
+    userCan(permission, userId) {
         let roleId;
 
-        // Check if actions is a string or array
-        if (typeof action === 'string') {
-            action = [action];
+        if (typeof permission === 'string') {
+            permission = [permission];
         }
-        else if (!(action instanceof Array)) {
-            throw new TypeError("Permissions must be an Array of String or a String");
+        else if (!(permission instanceof Array)) {
+            throw new TypeError("action must be a string or an array of strings");
         }
         // Nothing to verify
-        if (action.length === 0) {
+        if (permission.length === 0) {
             return true;
         }
         // Get user role
@@ -147,7 +203,7 @@ export const Roles = {
         else if (Meteor.isServer) {
             roleId = this.getUserRoleId(userId);
         }
-        return this.roleCan(action, roleId);
+        return this.roleCan(permission, roleId);
     }
 };
 
