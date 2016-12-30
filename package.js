@@ -25,7 +25,7 @@
 
 Package.describe({
     name: 'jalik:roles',
-    version: '0.2.0',
+    version: '0.2.1',
     author: 'karl.stein.pro@gmail.com',
     summary: 'Simple and efficient way to manage users permissions using roles',
     homepage: 'https://github.com/jalik/jalik-roles',

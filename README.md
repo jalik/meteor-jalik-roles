@@ -88,7 +88,7 @@ import {Roles} from 'meteor/jalik:roles';
 
 if (Meteor.isServer) {
     let role = Meteor.roles.findOne({name: "Administrator"});
-    let perms = Roles.permissions(role._id);
+    let perms = Roles.getRolePerms(role._id);
     console.log(perms);
 }
 ```
@@ -242,8 +242,15 @@ Meteor.startup(function() {
 
 ## Adding template helpers
 
-To add blaze template helpers, call the `Roles.addBlazeHelpers()` method.
-This makes the following helpers available in your templates.
+To add blaze template helpers, call the `Roles.addBlazeHelpers()` method, which will execute the code below :
+
+```js
+Template.registerHelper('userCan', function (permissions) {
+    return Roles.userCan(permissions);
+});
+```
+
+After what the following helper will be available in your templates.
 
 ```html
 {{#if userCan 'comment'}}
@@ -252,6 +259,9 @@ This makes the following helpers available in your templates.
 ```
 
 ## Changelog
+
+### v0.2.1
+- Fixes `this` scope in `Roles.addBlazeHelpers()`
 
 ### v0.2.0
 - Uses ES6 module `import` and `export` syntax

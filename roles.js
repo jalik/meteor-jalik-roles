@@ -33,8 +33,8 @@ export const Roles = {
      */
     addBlazeHelpers() {
         // Checks if the current user has the permission
-        Template.registerHelper('userCan', function (perms) {
-            return this.userCan(perms);
+        Template.registerHelper('userCan', function (permissions) {
+            return Roles.userCan(permissions);
         });
     },
 
